@@ -40,6 +40,7 @@
                 <table id="example1" class="table table-striped table-bordered" style="width:100%">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>Position</th>
                             <th>Office</th>
@@ -50,18 +51,6 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                            <th>Name</th>
-                            <th>Position</th>
-                            <th>Office</th>
-                            <th>Age</th>
-                            <th>Start date</th>
-                            <th>Salary</th>
-                            <th>Nationality</th>
-                            <th>Actions</th>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
 
@@ -70,6 +59,7 @@
                 <table id="example2" class="table table-striped table-bordered" style="width:100%">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>Position</th>
                             <th>Office</th>
@@ -79,18 +69,53 @@
                             <th>Nationality</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                            <th>Name</th>
-                            <th>Position</th>
-                            <th>Office</th>
-                            <th>Age</th>
-                            <th>Start date</th>
-                            <th>Salary</th>
-                            <th>Nationality</th>
-                        </tr>
-                    </tfoot>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Row</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="rowIndex">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="position" class="form-label">Position</label>
+                            <input type="text" class="form-control" id="position" name="position">
+                        </div>
+                        <div class="mb-3">
+                            <label for="office" class="form-label">Office</label>
+                            <input type="text" class="form-control" id="office" name="office">
+                        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="age" name="age">
+                        </div>
+                        <div class="mb-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" name="startDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="salary" class="form-label">Salary</label>
+                            <input type="number" class="form-control" id="salary" name="salary" step="1.00">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nationality" class="form-label">Nationality</label>
+                            <input type="text" class="form-control" id="nationality" name="nationality">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -101,6 +126,10 @@
             var table1 = new DataTable('#example1', {
                 "ajax": "data.txt",  // Replace with your actual data source URL
                 "columns": [
+                    {
+                        "data": null,
+                        "defaultContent": ''
+                    },
                     { data: 0 },
                     { data: 1 },
                     { data: 2 },
@@ -114,29 +143,38 @@
                     }
                 ],
                 "pagingType": "simple_numbers",
-                "dom": "<'row'<'col-sm-6'i><'col-sm-6'p>>" +
-                    "<'row'<'col-sm-12'tr>>" +
+                "dom": "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12'<'dtr'>>>" +
                     "<'row'<'col-sm-5'l><'col-sm-7'i>>",
                 "initComplete": function () {
-                    // Remove the default search box
-                    $(".dataTables_filter").remove();
-
-                    // Add column search boxes
-                    this.api().columns().every(function () {
+                    // Add column search boxes in the header
+                    var header = $('#example1 thead tr:eq(0)');
+                    this.api().columns().every(function (index) {
                         var column = this;
-                        var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
-                            .appendTo($(column.footer()).empty())
-                            .on('keyup change clear', function () {
-                                if (column.search() !== this.value) {
-                                    column.search(this.value).draw();
-                                }
-                            });
+                        if (index > 0) { // Skip the first column
+                            var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
+                                .appendTo($(header).find('th').eq(index))
+                                .on('keyup change clear', function () {
+                                    if (column.search() !== this.value) {
+                                        column.search(this.value).draw();
+                                    }
+                                });
+                        }
                     });
 
-                    // Enable row selection and deletion
+                    // Enable row selection and editing
                     $('#example1 tbody').on('click', '.edit-btn', function () {
-                        var data = table1.row($(this).parents('tr')).data();
-                        alert('Edit row data: ' + JSON.stringify(data));
+                        var row = table1.row($(this).parents('tr'));
+                        var data = row.data();
+                        $('#rowIndex').val(row.index());
+                        $('#name').val(data[0]);
+                        $('#position').val(data[1]);
+                        $('#office').val(data[2]);
+                        $('#age').val(data[3]);
+                        $('#startDate').val(data[4]);
+                        $('#salary').val(data[5]);  // Ensure salary is properly populated
+                        $('#nationality').val(data[6]);
+                        $('#editModal').modal('show');
                     });
 
                     $('#example1 tbody').on('click', '.delete-btn', function () {
@@ -151,6 +189,10 @@
             var table2 = new DataTable('#example2', {
                 "ajax": "data.txt",  // Replace with your actual data source URL
                 "columns": [
+                    {
+                        "data": null,
+                        "defaultContent": ''
+                    },
                     { data: 0 },
                     { data: 1 },
                     { data: 2 },
@@ -160,20 +202,23 @@
                     { data: 6 }
                 ],
                 "pagingType": "simple_numbers",
-                "dom": "<'row'<'col-sm-6'i><'col-sm-6'p>>" +
-                    "<'row'<'col-sm-12'tr>>" +
+                "dom": "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12'<'dtr'>>>" +
                     "<'row'<'col-sm-5'l><'col-sm-7'i>>",
                 "initComplete": function () {
-                    // Add column search boxes
-                    this.api().columns().every(function () {
+                    // Add column search boxes in the header
+                    var header = $('#example2 thead tr:eq(0)');
+                    this.api().columns().every(function (index) {
                         var column = this;
-                        var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
-                            .appendTo($(column.footer()).empty())
-                            .on('keyup change clear', function () {
-                                if (column.search() !== this.value) {
-                                    column.search(this.value).draw();
-                                }
-                            });
+                        if (index > 0) { // Skip the first column
+                            var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
+                                .appendTo($(header).find('th').eq(index))
+                                .on('keyup change clear', function () {
+                                    if (column.search() !== this.value) {
+                                        column.search(this.value).draw();
+                                    }
+                                });
+                        }
                     });
                 }
             });
@@ -182,6 +227,30 @@
             $('#toggleColumns').on('click', function () {
                 var column = table1.column(7);
                 column.visible(!column.visible());
+            });
+
+            // Handle form submission
+            $('#editForm').on('submit', function (e) {
+                e.preventDefault();
+                var rowIndex = $('#rowIndex').val();
+                var row = table1.row(rowIndex);
+
+                // Get form values
+                var updatedData = [
+                    $('#name').val(),
+                    $('#position').val(),
+                    $('#office').val(),
+                    $('#age').val(),
+                    $('#startDate').val(),
+                    $('#salary').val(),  // Ensure salary is properly updated
+                    $('#nationality').val(),
+                    row.data()[7] // Keep the original action button column
+                ];
+
+                // Update the row data
+                row.data(updatedData).draw();
+
+                $('#editModal').modal('hide');
             });
         });
     </script>
