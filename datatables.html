@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTables Example</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+    <!-- DataTables Modern Library -->
+    <script src="https://cdn.datatables.net/2.1.5/js/dataTables.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="table1-tab" data-bs-toggle="tab" data-bs-target="#table1" type="button" role="tab">Table 1</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="table2-tab" data-bs-toggle="tab" data-bs-target="#table2" type="button" role="tab">Table 2</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Table 1 -->
+            <div class="tab-pane fade show active" id="table1" role="tabpanel">
+                <div class="mb-3">
+                    <button class="btn btn-primary" id="toggleColumns">Toggle Columns</button>
+                </div>
+                <table id="example1" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Office</th>
+                            <th>Age</th>
+                            <th>Start date</th>
+                            <th>Salary</th>
+                            <th>Nationality</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Office</th>
+                            <th>Age</th>
+                            <th>Start date</th>
+                            <th>Salary</th>
+                            <th>Nationality</th>
+                            <th>Actions</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Table 2 -->
+            <div class="tab-pane fade" id="table2" role="tabpanel">
+                <table id="example2" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Office</th>
+                            <th>Age</th>
+                            <th>Start date</th>
+                            <th>Salary</th>
+                            <th>Nationality</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Office</th>
+                            <th>Age</th>
+                            <th>Start date</th>
+                            <th>Salary</th>
+                            <th>Nationality</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables for Table 1
+            var table1 = new DataTable('#example1', {
+                "ajax": "data.txt",  // Replace with your actual data source URL
+                "columns": [
+                    { data: 0 },
+                    { data: 1 },
+                    { data: 2 },
+                    { data: 3 },
+                    { data: 4 },
+                    { data: 5 },
+                    { data: 6 },
+                    {
+                        "data": null,
+                        "defaultContent": '<button class="btn btn-warning btn-sm edit-btn">Edit</button> <button class="btn btn-danger btn-sm delete-btn">Delete</button>'
+                    }
+                ],
+                "pagingType": "simple_numbers",
+                "dom": "<'row'<'col-sm-6'i><'col-sm-6'p>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'l><'col-sm-7'i>>",
+                "initComplete": function () {
+                    // Remove the default search box
+                    $(".dataTables_filter").remove();
+
+                    // Add column search boxes
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
+                            .appendTo($(column.footer()).empty())
+                            .on('keyup change clear', function () {
+                                if (column.search() !== this.value) {
+                                    column.search(this.value).draw();
+                                }
+                            });
+                    });
+
+                    // Enable row selection and deletion
+                    $('#example1 tbody').on('click', '.edit-btn', function () {
+                        var data = table1.row($(this).parents('tr')).data();
+                        alert('Edit row data: ' + JSON.stringify(data));
+                    });
+
+                    $('#example1 tbody').on('click', '.delete-btn', function () {
+                        if (confirm('Are you sure you want to delete this row?')) {
+                            table1.row($(this).parents('tr')).remove().draw();
+                        }
+                    });
+                }
+            });
+
+            // Initialize DataTables for Table 2
+            var table2 = new DataTable('#example2', {
+                "ajax": "data.txt",  // Replace with your actual data source URL
+                "columns": [
+                    { data: 0 },
+                    { data: 1 },
+                    { data: 2 },
+                    { data: 3 },
+                    { data: 4 },
+                    { data: 5 },
+                    { data: 6 }
+                ],
+                "pagingType": "simple_numbers",
+                "dom": "<'row'<'col-sm-6'i><'col-sm-6'p>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-5'l><'col-sm-7'i>>",
+                "initComplete": function () {
+                    // Add column search boxes
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var input = $('<input type="text" class="form-control form-control-sm" placeholder="Search" />')
+                            .appendTo($(column.footer()).empty())
+                            .on('keyup change clear', function () {
+                                if (column.search() !== this.value) {
+                                    column.search(this.value).draw();
+                                }
+                            });
+                    });
+                }
+            });
+
+            // Toggle columns visibility
+            $('#toggleColumns').on('click', function () {
+                var column = table1.column(7);
+                column.visible(!column.visible());
+            });
+        });
+    </script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
